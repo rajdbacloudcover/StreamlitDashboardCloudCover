@@ -4,6 +4,7 @@ import streamlit as st #pip install plotly-express
 
 print(pd. __version__)
 
+file_path = "Sales.csv"
 #emojis: https://www.webfx.com/tools/emoji-cheat-sheet/
 st.set_page_config(
     page_title="Sales Dashboard",
@@ -12,7 +13,7 @@ st.set_page_config(
 )
 
 customers = pd.read_csv(
-    'Sales.csv'
+    file_path
 )
 
 # ---- SIDEBAR ----
@@ -58,7 +59,9 @@ with right_column:
     st.subheader(f"US $ {total_profit:,}")
 
 st.markdown("---")
-st.dataframe(customers_selection)
+check_data_expander = st.expander("Check Data")
+check_data_expander.write(customers_selection) #Displays the Table Data
+#st.dataframe(customers_selection) #Displays the Table Data
 
 #SALES BY PRODUCT [BAR CHART]
 sales_by_product = (
@@ -78,7 +81,7 @@ fig_product_sales.update_layout(
     plot_bgcolor="rgba(0,0,0,0)",
     xaxis=(dict(showgrid=False))
 )
-fig_product_sales .update_layout(xaxis_title='Revenue', yaxis_title='Product')
+fig_product_sales.update_layout(xaxis_title='Revenue', yaxis_title='Product')
 
 #PROFIT BY PRODUCT [BAR CHART]
 profit_by_product = (
@@ -98,11 +101,11 @@ fig_product_profit.update_layout(
     xaxis=(dict(showgrid=False))
 )
 
-fig_product_profit .update_layout(xaxis_title='Product', yaxis_title='Profit')
+fig_product_profit.update_layout(xaxis_title='Product', yaxis_title='Profit')
 
 left_column, right_column = st.columns(2)
-left_column.plotly_chart(fig_product_sales, use_container_width=True)
-right_column.plotly_chart(fig_product_profit, use_container_width=True)
+left_column.plotly_chart(fig_product_sales, use_container_width=True) #Displays the Left Bar Chart
+right_column.plotly_chart(fig_product_profit, use_container_width=True)#Displays the Right Bar Chart
 
 # ---- HIDE STREAMLIT STYLE ----
 hide_st_style = """

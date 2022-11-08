@@ -50,6 +50,11 @@ st.markdown("##")
 total_sales = int(customers_selection["Revenue"].sum())
 total_profit = int(customers_selection["Profit"].sum())
 
+
+check_data_expander = st.expander("Check Data")
+check_data_expander.write(customers_selection)
+st.markdown("---")
+
 left_column, right_column = st.columns(2)
 with left_column:
     st.subheader("Total Sales:")
@@ -58,54 +63,77 @@ with right_column:
     st.subheader("Total Profit:")
     st.subheader(f"US $ {total_profit:,}")
 
-st.markdown("---")
-check_data_expander = st.expander("Check Data")
-check_data_expander.write(customers_selection) #Displays the Table Data
-#st.dataframe(customers_selection) #Displays the Table Data
+@st.cache
+def convert_df(customers_selection):
+    return customers_selection.to_csv().encode('utf-8')
 
+sales_column, profit_column = st.columns(2)
 #SALES BY PRODUCT [BAR CHART]
-sales_by_product = (
-    customers_selection.groupby(by=["Sub_Category"]).sum()[["Revenue"]].sort_values(by="Revenue")
-)
+with sales_column:
+    sales_by_product = (
+        customers_selection.groupby(by=["Sub_Category"]).sum()[["Revenue"]].sort_values(by="Revenue")
+    )
 
-fig_product_sales = px.bar(
-    sales_by_product,
-    x = "Revenue",
-    y = sales_by_product.index,
-    orientation="h",
-    title="<b>Sales Revenue by Product </b>",
-    color_discrete_sequence=["#0083B8"] * len(sales_by_product),
-    template="plotly_white"
-)
-fig_product_sales.update_layout(
-    plot_bgcolor="rgba(0,0,0,0)",
-    xaxis=(dict(showgrid=False))
-)
-fig_product_sales.update_layout(xaxis_title='Revenue', yaxis_title='Product')
+    fig_product_sales = px.bar(
+        sales_by_product,
+        x = "Revenue",
+        y = sales_by_product.index,
+        orientation="h",
+        title="<b>Sales Revenue by Product </b>",
+        color_discrete_sequence=["#0083B8"] * len(sales_by_product),
+        template="plotly_white"
+    )
+    fig_product_sales.update_layout(
+        plot_bgcolor="rgba(0,0,0,0)",
+        xaxis=(dict(showgrid=False))
+    )
+    fig_product_sales.update_layout(xaxis_title='Revenue', yaxis_title='Product')
+
+    st.download_button(
+        label="Download data as CSV",
+        data=convert_df(sales_by_product),
+        file_name='sales_by_product.csv',
+        mime='text/csv',
+    )
+
+    # Displays the Left Bar Chart
+    left_column.plotly_chart(fig_product_sales, use_container_width=True)
+    check_data_expander = st.expander('Show in Table')
+    check_data_expander.write(sales_by_product)
 
 #PROFIT BY PRODUCT [BAR CHART]
-profit_by_product = (
-    customers_selection.groupby(by=["Sub_Category"]).sum()[["Profit"]].sort_values(by="Profit")
-)
+with profit_column:
+    profit_by_product = (
+        customers_selection.groupby(by=["Sub_Category"]).sum()[["Profit"]].sort_values(by="Profit")
+    )
 
-fig_product_profit = px.bar(
-    profit_by_product,
-    x = profit_by_product.index,
-    y = "Profit",
-    title="<b>Profit by Product </b>",
-    color_discrete_sequence=["#0083B8"] * len(profit_by_product),
-    template="plotly_white"
-)
-fig_product_profit.update_layout(
-    plot_bgcolor="rgba(0,0,0,0)",
-    xaxis=(dict(showgrid=False))
-)
+    fig_product_profit = px.bar(
+        profit_by_product,
+        x = profit_by_product.index,
+        y = "Profit",
+        title="<b>Profit by Product </b>",
+        color_discrete_sequence=["#0083B8"] * len(profit_by_product),
+        template="plotly_white"
+    )
+    fig_product_profit.update_layout(
+        plot_bgcolor="rgba(0,0,0,0)",
+        xaxis=(dict(showgrid=False))
+    )
 
-fig_product_profit.update_layout(xaxis_title='Product', yaxis_title='Profit')
+    fig_product_profit.update_layout(xaxis_title='Product', yaxis_title='Profit')
 
-left_column, right_column = st.columns(2)
-left_column.plotly_chart(fig_product_sales, use_container_width=True) #Displays the Left Bar Chart
-right_column.plotly_chart(fig_product_profit, use_container_width=True)#Displays the Right Bar Chart
+    st.download_button(
+        label="Download data as CSV",
+        data=convert_df(profit_by_product),
+        file_name='profit_by_product.csv',
+        mime='text/csv',
+    )
+
+    # Displays the Right Bar Chart
+    right_column.plotly_chart(fig_product_profit, use_container_width=True)
+    check_data_expander = st.expander('Show in Table')
+    check_data_expander.write(profit_by_product)
+
 
 # ---- HIDE STREAMLIT STYLE ----
 hide_st_style = """
@@ -118,3 +146,36 @@ hide_st_style = """
 
 st.markdown(hide_st_style, unsafe_allow_html=True)
 
+yearwise, categorywise = st.columns(2)
+
+# YearWise Profit, Revenue, Profit_Percentage Calculation
+with yearwise:
+    st.header("Year wise Sales")
+    m_y_sales = customers_selection[["Year", "Profit", "Revenue"]].groupby(["Year"]).sum()
+    m_y_sales["Profit_percentage"] = (m_y_sales["Profit"] / m_y_sales["Revenue"]) * 100
+    st.bar_chart(m_y_sales)
+
+    st.download_button(
+        label="Download data as CSV",
+        data=convert_df(m_y_sales),
+        file_name='m_y_sales.csv',
+        mime='text/csv',
+    )
+
+    check_data_expander = st.expander('Show in Table')
+    check_data_expander.write(m_y_sales)
+
+# CategoryWise Profit, Revenue, Profit_Percentage Calculation
+with categorywise:
+    st.header("category wise Sales")
+    p_c_sales = customers_selection[["Product_Category", "Profit", "Revenue"]].groupby(["Product_Category"]).sum()
+    p_c_sales["Profit_percentage"] = (p_c_sales["Profit"] / p_c_sales["Revenue"]) * 100
+    st.bar_chart(p_c_sales)
+    st.download_button(
+        label="Download data as CSV",
+        data=convert_df(p_c_sales),
+        file_name='p_c_sales.csv',
+        mime='text/csv',
+    )
+    check_data_expander = st.expander('Show in Table')
+    check_data_expander.write(p_c_sales)

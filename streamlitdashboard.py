@@ -26,11 +26,12 @@ customers = pd.read_csv(
 def convert_df(customers_selection):
     return customers_selection.to_csv().encode('utf-8')
 
+
 with st.sidebar:
     options = st.multiselect(
-        'Select Columns to Download CSV',
+        'Select Original Columns to Download CSV',
         customers.columns.values
-        )
+    )
     selected_df = customers[options]
     csv = convert_df(selected_df)
     st.download_button(
@@ -63,6 +64,20 @@ customers_selection = customers.query(
     "Country == @country & Customer_Gender == @gender & Age_Group == @age_group"
 )
 
+with st.sidebar:
+    options = st.multiselect(
+        'Select Filtered Columns to Download CSV',
+        customers_selection.columns.values
+    )
+    selected_df = customers_selection[options]
+    csv = convert_df(selected_df)
+    st.download_button(
+        label="Download data as CSV",
+        data=csv,
+        file_name='large_filtered_df.csv',
+        mime='text/csv',
+    )
+    
 #st.dataframe(customers_selection)
 
 # ---- MAINPAGE ----

@@ -22,6 +22,24 @@ customers = pd.read_csv(
 )
 
 # ---- SIDEBAR ----
+@st.cache
+def convert_df(customers_selection):
+    return customers_selection.to_csv().encode('utf-8')
+
+with st.sidebar:
+    options = st.multiselect(
+        'Select Columns to Download CSV',
+        customers.columns.values
+        )
+    selected_df = customers[options]
+    csv = convert_df(selected_df)
+    st.download_button(
+        label="Download data as CSV",
+        data=csv,
+        file_name='large_df.csv',
+        mime='text/csv',
+    )
+
 st.sidebar.header("Please Filter Here:")
 country = st.sidebar.multiselect(
     "Select the Country:",
@@ -51,12 +69,15 @@ customers_selection = customers.query(
 st.title(":bar_chart: Sales Dashboard")
 st.markdown("##")
 
+check_data_expander = st.expander("Check Original Data")
+check_data_expander.write(customers)
+
 # TOP KPI's
 total_sales = int(customers_selection["Revenue"].sum())
 total_profit = int(customers_selection["Profit"].sum())
 
 
-check_data_expander = st.expander("Check Data")
+check_data_expander = st.expander("Check Filtered Data")
 check_data_expander.write(customers_selection)
 st.markdown("---")
 
@@ -67,10 +88,6 @@ with left_column:
 with right_column:
     st.subheader("Total Profit:")
     st.subheader(f"US $ {total_profit:,}")
-
-@st.cache
-def convert_df(customers_selection):
-    return customers_selection.to_csv().encode('utf-8')
 
 sales_column, profit_column = st.columns(2)
 #SALES BY PRODUCT [BAR CHART]
